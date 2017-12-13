@@ -1,0 +1,75 @@
+﻿@using System.Data;
+@using Taolx.Tools.Web.Controllers;
+@{
+    ViewBag.Title = "CreateEntityClass";
+    var tables = (Dictionary<string, DataTable>)ViewBag.Tables;
+    var @namespace = (string)ViewBag.Namespace;
+    var writeDb = (string)ViewBag.Db;
+    var readDb = writeDb.Replace("DB_Write", "DB_Read");
+    var dbName = writeDb.Replace("DB_Write", string.Empty);
+    dbName = DBEntityGeneratorController.GenerateName(dbName);
+}
+
+<div id="@dbName" class="easyui-tabs" tabPosition="top">
+
+    @foreach (var tableName in tables.Keys)
+    {
+        var table = tables[tableName];
+        <div title="@tableName">
+            <pre class=prettyprint contenteditable="true">
+            <code class=prettyprint contenteditable="true">
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks; 
+namespace @(@namespace)
+{
+    /// &lt;summary>
+    /// @(tableName)本代码由工具自动生成,请勿手动修改
+    /// 本实体属于@(dbName)Db数据库
+    /// &lt;/summary>
+    [Serializable]
+    [Table("@tableName")]
+    public class @(DBEntityGeneratorController.GenerateEntityName(tableName))
+    {
+            @foreach (DataRow row in table.Rows) {
+                var comment = row["COLUMN_COMMENT"] != null ? row["COLUMN_COMMENT"].ToString() : string.Empty;
+                comment = comment.Replace("\n", "\n\t    ///\t\t").Replace("\r", "\n\t    ///\t\t");
+            <tt>
+            /// &lt;summary>
+            ///  @(comment)
+            ///  ColumnType:@(row["COLUMN_TYPE"])
+            ///  DefaultVal:@(row["COLUMN_DEFAULT"])
+            ///  Nullable:@(row["IS_NULLABLE"])
+            ///  EXTRA:@(row["EXTRA"])
+            /// &lt;/summary>
+           @if (row["COLUMN_KEY"]!=null && row["COLUMN_KEY"].ToString() == "PRI")
+           { 
+            <span>[Key]</span>  
+              if(row["EXTRA"] != null && row["EXTRA"].ToString() == "auto_increment")
+               {
+            <span>[DatabaseGenerated( DatabaseGeneratedOption.Identity)]</span>  
+              }else { 
+            <span>[DatabaseGenerated( DatabaseGeneratedOption.None)]</span>   
+             }     
+           }
+           [Column("@(row["COLUMN_NAME"])")]                                  
+           public @(DBEntityGeneratorController.GenerateType(row)) @(row["COLUMN_NAME"]) { set; get; }
+            </tt>
+            }
+      }
+}
+    </code> 
+</pre>
+
+        </div>
+    }
+</div>
+
+@section scripts{
+    <script src="~/Scripts/run_prettify.js"></script>
+    <script> addEventListener('load', PR.prettyPrint, false);</script>
+}

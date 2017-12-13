@@ -1,0 +1,127 @@
+﻿
+@{
+    ViewBag.Title = "Host";
+}
+
+<table id="hostTreeGrid"></table>
+<div id="tools">
+    <a href="javascript:void(0)" id="exportHost" class="easyui-linkbutton" data-options="iconCls:'icon-submit'" style="width:120px">导出Host</a>
+</div>
+@section scripts{
+    <script> 
+        $(function () {
+            var hostData = [
+                //测试
+                {
+                    environment: "测试", ip: "", domain: "", desc: "",
+                    children: [
+                         //站点
+                          { environment: "测试-站点", ip: "10.1.26.12", domain: "www.test.taolx.com", desc: "主站" },
+                          { environment: "测试-站点", ip: "10.1.26.12", domain: "flight.test.taolx.com", desc: "机票站点" },
+                          { environment: "测试-站点", ip: "120.27.155.204", domain: "payment.test.taolx.com", desc: "支付站点" },
+                          { environment: "测试-站点", ip: "10.1.26.12", domain: "service.test.taolx.com", desc: "管理后台" },
+                          { environment: "测试-站点", ip: "10.1.26.12", domain: "hotel.test.taolx.com", desc: "酒店站点" },
+                          { environment: "测试-站点", ip: "10.1.26.12", domain: "security.test.taolx.com", desc: "用户中心站点" },
+                          { environment: "测试-站点", ip: "10.1.26.12", domain: "package.test.taolx.com", desc: "套餐站点" },
+                          { environment: "测试-站点", ip: "10.1.26.12", domain: "rbac.test.taolx.com", desc: "权限系统站点" },
+                          { environment: "测试-站点", ip: "10.1.26.12", domain: "packageb2b.test.taolx.com", desc: "套餐b2b站点" },
+                          { environment: "测试-站点", ip: "10.1.26.12", domain: "h5.test.taolx.com", desc: "h5站点" },
+                          { environment: "测试-站点", ip: "10.1.26.12", domain: "tools.test.taolx.com", desc: "工具平台站点" },
+                          { environment: "测试-站点", ip: "10.1.26.13", domain: "nuget.taolx.com", desc: "nuget站点" },
+                          { environment: "测试-站点", ip: "10.1.26.13", domain: "product.taolx.com", desc: "???" },
+                          { environment: "测试-站点", ip: "10.1.26.12", domain: "resource.taolx.com", desc: "资源上传站点" },
+                          { environment: "测试-站点", ip: "10.1.26.12", domain: "static.taolx.com", desc: "静态资源站点" },
+                          //服务
+                          { environment: "测试-服务", ip: "120.27.155.204", domain: "paymentapi.test.taolx.com", desc: "支付服务" },
+                          { environment: "测试-服务", ip: "10.1.26.11", domain: "flightapi.test.taolx.com", desc: "机票服务" },
+                          { environment: "测试-服务", ip: "10.1.26.11", domain: "messagecenter.test.taolx.com", desc: "消息中心服务" },
+                          { environment: "测试-服务", ip: "10.1.26.11", domain: "hotelapi.test.taolx.com", desc: "酒店服务" },
+                          { environment: "测试-服务", ip: "10.1.26.11", domain: "orderapi.test.taolx.com", desc: "订单服务" },
+                          { environment: "测试-服务", ip: "10.1.26.11", domain: "accountsapi.test.taolx.com", desc: "用户中心服务" },
+                          { environment: "测试-服务", ip: "10.1.26.11", domain: "packageapi.test.taolx.com", desc: "套餐服务" },
+                          { environment: "测试-服务", ip: "10.1.26.11", domain: "rbacapi.test.taolx.com", desc: "权限系统服务" },
+                          { environment: "测试-服务", ip: "10.1.26.11", domain: "routeapi.test.taolx.com", desc: "路由服务" },
+                          { environment: "测试-服务", ip: "10.1.26.11", domain: "commonapi.test.taolx.com", desc: "公共服务" },
+                          { environment: "测试-服务", ip: "10.1.26.11", domain: "couponapi.test.taolx.com", desc: "优惠券服务" },
+                          { environment: "测试-服务", ip: "10.1.26.11", domain: "shopping.test.taolx.com", desc: "新产品服务" }
+                    ]
+                }, 
+                //生产
+                {
+                    environment: "生产", ip: "", domain: "", desc: "",
+                    children: [
+                          { environment: "生产-站点", ip: "120.26.215.137", domain: "service.taolx.com", desc: "后台管理站点" },
+                          { environment: "生产-站点", ip: "120.55.249.29", domain: "tools.taolx.com", desc: "工具平台站点" },
+                    ]
+                }
+            ];
+            var idIndex = 0;
+            var setId = function (item) {
+                item.id = idIndex++;
+                if (item.children) {
+                    item.children.forEach(function (child) {
+                        setId(child)
+                    });
+                }
+            };
+            hostData.forEach(function (item) {
+                setId(item);
+            });
+            $("#hostTreeGrid").treegrid({
+                title: "Host",
+                rownumbers: true,
+                idField: "id",
+                treeField: "environment",
+                fit: true,
+                toolbar: "#tools",
+                lines: false,
+                data: hostData,
+                columns: [[
+                    { field: 'environment', title: '环境' },
+                    { field: 'ip', title: 'IP' },
+                    {
+                        field: 'domain', title: '域名', formatter: function (value, row, index) {
+                            if (!value) return "";
+                            var href = value;
+                            if (href.indexOf("http") < 0)
+                                href = "http://" + href;
+                            return '<a href="' + href + '" target="_blank">' + value + '</a>';
+                        }
+                    },
+                    { field: 'desc', title: '说明' }
+                ]]
+            });
+            //导出host
+            $("#exportHost").click(function () {
+                var data = "#----------淘旅行Host配置开始----------\n"
+                hostData.forEach(function (item) {
+                    if (item.children) {
+                        item.children.forEach(function (child) {
+                            data += "# " + child.environment + ":" + child.desc+"\n";
+                            data += child.ip + " " + child.domain + "\n";
+                        });
+                    }
+                });
+                data += "#----------淘旅行Host配置结束----------\n"
+                var content = ' <textarea style="width:98%;height:98%">' + data + '</textarea>';
+                var id = "t_w_" + new Date().getTime();
+                $("body").append("<div id='" + id + "'></div>");
+                id = "#" + id;
+                $(id).window({
+                    title: "自个儿考屁吧!",
+                    width: 1280,
+                    height: 800,
+                    minimizable: false,
+                    content: content,
+                    onClose: function () {
+                        $(id).window("destroy");
+                    }
+                });
+                $(id).window("center");
+            });
+        });
+
+
+
+    </script>
+} 

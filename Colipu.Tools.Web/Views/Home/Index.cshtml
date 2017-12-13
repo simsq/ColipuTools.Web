@@ -1,0 +1,246 @@
+﻿@using Colipu.Tools.Web.Controllers;
+@{
+    ViewBag.Title = "首页";
+}
+
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'west',split:true" title="菜单" style="width: 210px;">
+        <ul id="tt" class="easyui-tree"></ul>
+    </div>
+    <div data-options="region:'center'">
+        <div id="dv_tabs_m" class="easyui-tabs" data-options="plain:true,fit:true">
+            <div title="首页" style="padding: 20px; text-align: center; margin: 0 auto; padding: 0 auto; height: 100%;">
+                <p>Welcome to use Colipu Logging platform </p>
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'south',border:false" style="height: 25px; width: 100%; overflow: hidden; padding: 0 0 15px;">
+        <div style="text-align: center; font: 12px/1.5 Arial; margin-top: 3px;">
+            Copyright© @DateTime.Now.ToString("yyyy")  Colipu.工具平台
+        </div>
+
+    </div>
+</div>
+<div id="tab-tools" style="padding: 2px 5px;">
+    <a href="javascript:updateTab();" onclick="updateTab();" class="easyui-linkbutton" plain="true" iconcls="icon-reload">刷新当前</a>
+    <a href="javascript:closeCurrTab();" onclick="closeCurrTab();" class="easyui-linkbutton" plain="true" iconcls="icon-no">关闭当前</a>
+    <a href="javascript:LoginOut();" onclick="LoginOut();" class="easyui-linkbutton" plain="true" iconcls="icon-undo">退出</a>
+    <a href="javascript:changePwd.openWindow();" onclick="changePwd.openWindow();" class="easyui-linkbutton" plain="true" iconcls="icon-edit">修改密码</a>
+    主题:
+    <select id="changeTheme" class="easyui-combobox"
+            data-options="editable:false, onChange:function(newValue, oldValue){changeThemeFun(newValue); } ">
+        <option value="default">Default</option>
+        <option value="black">Black</option>
+        <option value="bootstrap">Bootstrap</option>
+        <option value="gray">Gray</option>
+        <option value="metro">Metro</option>       
+    </select>
+    <a href="javascript:void(0)" class="easyui-linkbutton" plain="true" iconcls="icon-man"></a>
+</div>
+<div id="changePwdWindow" class="easyui-window" title="修改密码" data-options="iconCls:'icon-save'" closed="true" model="true"
+     style="width:300px;height:180px;padding:10px;">
+    <form id="changePwdForm">
+        <table class="datagrid-htable">
+            <tr>
+                <th>原密码：</th>
+                <td>
+                    <input type="password" class="easyui-textbox" name="OldPassword" data-options="required:true" />
+            </tr>
+            <tr>
+                <th>新密码：</th>
+                <td>
+                    <input type="password" class="easyui-textbox" name="NewPassword" data-options="required:true" />
+                </td>
+            </tr>
+            <tr>
+                <th>确认密码：</th>
+                <td>
+                    <input type="password" class="easyui-textbox" name="ConfirmNewPassword" data-options="required:true" />
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" align="center">
+                    <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="changePwd.changePwd()" style="width:80px">确定</a>
+                    <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'" onclick="changePwd.closeWindow()" style="width:80px">取消</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+@section scripts{
+    <script>
+        var appVersion=@MvcApplication.AppVersion;
+        $(document).ready(function () {
+            initMenuTree();
+            initTabs();
+            $('#btn_loginout').click(function () {
+                location.href = "/Amount/LoginOut.aspx";
+            });
+            var theme=$.cookie('easyuiThemeName');
+            if(theme==null ||theme==undefined ||theme=="")
+                theme="default";
+            $("#changeTheme").combobox("setValue",theme);
+        });
+
+        function initMenuTree() {
+            var treeData= [{
+                id:1,
+                text:"菜单",
+                children:[                 
+                    { id:3,text:"日志",attributes:"/Log/Index",children:[]},
+                    { id:4,text:"加密解密",attributes:"/Aes/Index",children:[]},                 
+                ]
+            }];
+          
+            $('#tt').tree({
+                data:  treeData,
+                onSelect: function (node) {
+                    if (node.children.length != 0) return;
+                    addTab(node.text, node.attributes, node.id);
+                    setDocumentTitle(node.text);
+                }
+            });
+        }
+
+        function addTab(title, url, id) {
+            if ($('#dv_tabs_m').tabs('exists', title)) {
+                $('#dv_tabs_m').tabs('select', title);
+            } else {
+                url+=((url.indexOf("?") <= 0?"?_":"&_")+appVersion);
+                var content = '<iframe scrolling="auto" frameborder="0"  src="' + url + '" style="width:100%;height:98%;"></iframe>';
+                $.messager.progress({ title: "正在加载界面", text: "正在加载界面" });
+                $('#dv_tabs_m').tabs('add', {
+                    title: title,
+                    id: id,
+                    content: content,
+                    closable: true,
+                    tools: [
+                        {
+                            iconCls: "icon-mini-refresh", handler: function () {
+                                updateTab();
+                            }
+                        }],
+                });
+                setTimeout('$.messager.progress("close")', 500);
+            }
+        }
+
+        function updateTab(){
+            var currTab = $('#dv_tabs_m').tabs('getSelected');
+            var tabTitle = currTab.panel("options").title;
+            if (tabTitle == "首页") return;
+            $.messager.progress({ title: "正在加载界面", text: "正在加载界面" });
+            $('#dv_tabs_m').tabs('update', {
+                tab: currTab,
+                options: {
+                    tools: currTab.panel("options").tools,
+                    content: currTab.panel("options").content
+                }
+            });
+            setTimeout('$.messager.progress("close")', 500);
+        }
+
+        function closeCurrTab(){
+            var tabTitle = $('#dv_tabs_m').tabs('getSelected').panel("options").title;
+            if (tabTitle != "首页")   {
+                $.messager.confirm('关闭提示', '您确定要关闭当前页面?', function(r){
+                    if (r){
+                        $('#dv_tabs_m').tabs('close', tabTitle);
+                    }
+                });
+            }
+        }
+
+        function LoginOut(){
+            $.messager.confirm('退出提示', '您确定要退出系统吗?', function(r){
+                if (r){
+                    window.location.href="/Home/LoginOut";
+                }
+            });
+        }
+
+        function initTabs() {
+            $('div#dv_tabs_m').tabs({
+                onSelect: function (title, index) {
+                    if (index ==0)  {
+                        setDocumentTitle("首页");
+                        return;
+                    }
+                    var id = $(this).tabs("tabs")[index].panel("options").id;
+                    var node = $('#tt').tree("find", id);
+                    $('#tt').tree("select", node.target);
+                    setDocumentTitle(node.text);
+                },
+                tools: "#tab-tools"
+            });
+        }
+
+        function changeThemeFun(themeName) {/* 更换主题 */
+            var $easyuiTheme = $('#easyuiTheme');
+            var url = $easyuiTheme.attr('href');
+            var href="";
+            if(themeName.indexOf("www")>0)
+                href   =   themeName;
+            else
+                href = url.substring(0, url.indexOf('themes')) + 'themes/' + themeName + '/easyui.css';
+            $easyuiTheme.attr('href', href);
+            var $iframe = $('iframe');
+            loopchangeTheme($iframe,href);
+            $.cookie('easyuiThemeName', themeName, {
+                expires: 365  ,
+                path:"/"
+            });
+        }
+
+        function loopchangeTheme($iframe,href){
+            if ($iframe && $iframe.length > 0) {
+                for (var i = 0; i < $iframe.length; i++) {
+                    var ifr = $iframe[i];
+                    $(ifr).contents().find('#easyuiTheme').attr('href', href);
+                    var ci=$(ifr).contents().find("iframe");
+                    loopchangeTheme(ci,href);
+                }
+            }
+        }
+
+        function setDocumentTitle(title){
+            document.title=title+"-科力普工具平台";
+        }
+
+        function keepOnline(){
+            $.ajax({
+                type: "POST",url: "/Home/NoLogin",dataType: "html"});
+            setTimeout('keepOnline()',300000);
+        }
+
+    </script>
+
+    <script>
+        var changePwd={
+            openWindow:function(){
+                $("#changePwdWindow").window("open");
+                $("#changePwdWindow").window("center");
+            }  ,
+            closeWindow:function(){
+                $("#changePwdWindow").window("close");
+            } ,
+            changePwd:function(){
+                var isValid = $("#changePwdForm").form('validate');
+                if (!isValid) return;
+                var formData = $("#changePwdForm").form("getData");
+                if(formData.NewPassword!=formData.ConfirmNewPassword)  {
+                    $.messager.alert('修改密码提示', "新密码和确认密码不一致!", 'warning');
+                    return;
+                }
+                $.messager.confirm('修改密码提示', '您确认要修改密码?', function (r) {
+                    if (r) {
+                        $.post("ChangePwd", formData, function (data) {
+                            $.messager.alert('修改密码提示', data.Message, 'info');
+                        });
+                    }
+                });
+            }
+        };
+    </script>
+}

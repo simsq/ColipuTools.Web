@@ -1,0 +1,43 @@
+﻿@{
+    var appVersion = MvcApplication.AppVersion;
+    HttpCookie easyuiThemeNameCookie = Request.Cookies["easyuiThemeName"];
+    if (easyuiThemeNameCookie == null)
+    {
+        easyuiThemeNameCookie = new HttpCookie("easyuiThemeName");
+        easyuiThemeNameCookie.Value = "default";
+        Request.Cookies.Add(easyuiThemeNameCookie);
+    }
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title-科力普工具平台</title>
+    @if (easyuiThemeNameCookie.Value.Contains("www"))
+    {
+        <link id="easyuiTheme" href="@HttpUtility.UrlDecode(easyuiThemeNameCookie.Value)" rel="stylesheet" />
+    }
+    else
+    {
+        <link id="easyuiTheme" href="~/Scripts/jquery-easyui/themes/@easyuiThemeNameCookie.Value/easyui.css" rel="stylesheet" />
+    } 
+    <link href="~/Scripts/jquery-easyui/themes/color.css" rel="stylesheet" />
+    <link href="~/Scripts/jquery-easyui/themes/icon.css" rel="stylesheet" />
+</head>
+<body>
+    @RenderBody()  
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <script src="~/Scripts/jquery.extend.js"></script>
+    <script src="~/Scripts/jquery.base64.js"></script>
+    <script src="~/Scripts/jquery.form.js"></script>
+    <script src="~/Scripts/jquery.tmpl.min.js"></script>
+    <script src="~/Scripts/jquery-easyui/jquery.easyui.min.js"></script>
+    <script src="~/Scripts/jquery-easyui/easyui-lang-zh_CN.js"></script>
+    <script src="~/Scripts/jquery-easyui/datagrid-detailview.js"></script>
+    <script src="~/Scripts/jquery-easyui/jquery.easyui.min.extend.js"></script> 
+    <script src="~/Scripts/JsonFormater.js"></script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

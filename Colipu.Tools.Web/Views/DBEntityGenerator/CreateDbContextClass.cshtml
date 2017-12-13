@@ -1,0 +1,83 @@
+﻿@using System.Threading;
+@using Taolx.Tools.Web.Controllers;
+@{
+    ViewBag.Title = "CreateDbContextClass";
+    Layout = null;
+
+    var tables = (string)ViewBag.Tables;
+    var writeDb = (string)ViewBag.Db;
+    var  @namespace = (string)ViewBag.Namespace ;
+    var readDb = writeDb.Replace("DB_Write", "DB_Read");
+    var dbName = writeDb.Replace("DB_Write", string.Empty);
+    dbName = DBEntityGeneratorController.GenerateName(dbName);
+}
+<html>
+<head>
+    <script src="~/Scripts/run_prettify.js"></script>
+    <script> addEventListener('load', PR.prettyPrint, false);</script>
+</head>
+<body>
+    <pre class=prettyprint contenteditable="true"> 
+<code class=prettyprint contenteditable="true">
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Configuration;         
+using Taolx.Common.Library.Helpers; 
+ <br />
+///  &lt;summary>
+///  本代码由工具自动生成,
+///   需要引用的DLL有: Taolx.Common.Library, Taolx.Common.DataAccess,
+///   需要安装的Nuget包: EntityFramework,MySql.Data.Entity
+///  &lt;/summary>
+namespace @(@namespace)
+{
+    ///  &lt;summary>
+    ///  @(dbName)DbContext
+    ///  &lt;/summary>
+    public class @(dbName)DbContext : TaolxDbContext
+    {
+        ///  &lt;summary>
+        /// 读数据库连接字符串
+        ///  &lt;/summary>
+        private readonly static string readConnectionString =AesHelper.Decrypt(ConfigurationManager.ConnectionStrings["@readDb"].ConnectionString);
+    <br />
+        ///  &lt;summary>
+        /// 写数据库连接字符串
+        ///  &lt;/summary>
+        private readonly static string writeConnectionString =AesHelper.Decrypt(ConfigurationManager.ConnectionStrings["@writeDb"].ConnectionString);
+       
+    @foreach (var table in tables.Split(',')) {
+            var tableName = DBEntityGeneratorController.GenerateTableName(table);
+    <tt>
+        ///  &lt;summary>
+        ///   @tableName
+        ///  &lt;/summary>
+        public TaolxDbSet &lt;@(DBEntityGeneratorController.GenerateEntityName(table))> @tableName { set; get; }             
+     </tt>        
+    }
+     
+        ///  &lt;summary>
+        /// 构造方法
+        ///  &lt;/summary>
+        public @(dbName)DbContext : base(readConnectionString, writeConnectionString)
+        {
+        }
+    <br />
+        ///  &lt;summary>
+        /// 输出sql执行日志
+        ///  &lt;/summary>
+        ///  &lt;param name="log">日志内容 &lt;/param>
+        public override void Log(string log)
+        {
+            Debug.WriteLine(string.Format("{0}:{1}:{2}", GetType().FullName, DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss"), log));
+        }
+    }
+}         
+    </code>
+    </pre>
+</body>
+</html>

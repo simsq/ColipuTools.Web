@@ -1,0 +1,234 @@
+﻿@using Taolx.Tools.Business;
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'west',split:true" title="" style="width:810px;">
+        <div class="easyui-layout" data-options="fit:true">
+            <div data-options="region:'west',split:true" title="数据库" style="width:240px;">
+                <ul id="dbTree" class="easyui-tree"></ul>
+            </div>
+            <div data-options="region:'center'" style="padding:2px;">
+                <table id="dbTables" title="数据库表" class="easyui-datagrid" data-options="fit:true" toolbar="#tb">
+                    <thead>
+                        <tr>
+                            <th data-options="field:'ck',checkbox:true">ck</th>
+                            <th data-options="field:'TABLE_NAME'">表名</th>
+                        </tr>
+                    </thead>
+                </table>
+                <div id="tb">
+                    DbContextNamespace:<input  id="dbContextNamespace" value="" />
+                    <a id="createDbContext" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-redo',plain:true">生成DbContext</a>
+                    <br/>
+                    EntityNamespace:<input id="entityNamespace" value="" />
+                    <a id="createEntity"  href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-redo',plain:true">生成Entity</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'center'">
+        <table id="dbColumns" title="数据库表字段" class="easyui-datagrid" data-options="fit:true">
+            <thead>
+                <tr>
+                    <th data-options="field:'COLUMN_NAME'">列名</th>
+                    <th data-options="field:'COLUMN_DEFAULT'">默认值</th>
+                    <th data-options="field:'COLUMN_TYPE'">类型</th>
+                    <th data-options="field:'IS_NULLABLE'">可空</th>
+                    <th data-options="field:'COLUMN_KEY'">主键</th>
+                    <th data-options="field:'EXTRA'">自增</th>
+                    <th data-options="field:'COLUMN_COMMENT'">描述</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+<div id="dbContextWin" class="easyui-window" title="My Window" style="width:70%;height:80%" closed="true"
+     data-options="iconCls:'icon-save',modal:true">
+    <div id="dbContextWinCode" style="width:100%;height:100%">
+    </div>
+</div>
+
+<div id="EntityWin" class="easyui-window" title="My Window" style="width:70%;height:80%" closed="true"
+     data-options="iconCls:'icon-save',modal:true">
+    <div id="EntityWinCode" style="width:100%;height:100%">
+    </div>
+</div>
+
+
+@section scripts{
+    
+    <script> 
+        var dbs=@Html.Raw(Json.Encode(DBEntityGeneratorBll.GetAllDb()));
+        $(function(){
+            var $dbTree=$("#dbTree");
+            var $dbTables=$("#dbTables");
+            var $dbColumns=$("#dbColumns");
+            var currDb=undefined;
+            var currTable=undefined;
+
+            //初始化dbTree
+            var initDbTree=function(){
+                var dbTree=[];
+                for(var index =0;index<dbs.length;index++){
+                    dbTree.push({
+                        id:index,
+                        text:dbs[index]
+                    });
+                    $dbTree.tree({
+                        data:dbTree,
+                        onClick:function(node){
+                            currDb=node.text;
+                            setDbTablesTitme(currDb);
+                            loadDbTables(node.text);
+                        }
+                    });
+                }
+            }
+
+            //初始化dbTables
+            var initDbTables=function(){
+                $dbTables.datagrid({
+                    url:"/DBEntityGenerator/GetTables",
+                    onBeforeLoad:function(param){
+                        if(!currDb)
+                            return false;
+                        param.dbKeyName=currDb;
+                        return true;
+                    },
+                    loadFilter:function(data){
+                        var tablses=[];
+                        for(var index in data){
+                            var table=data[index];
+                            for(var p in table)
+                                tablses.push({TABLE_NAME:table[p]});
+                        }
+                        return {rows:tablses};
+                    },
+                    onLoadSuccess:function(){
+                        $dbTables.datagrid("selectRow",0);
+                    },
+                    onSelect:function(index,row){
+                        currTable=row.TABLE_NAME;
+                        setDbColumnTitle(currDb+"."+currTable);
+                        loadDbColumns();
+                    }
+                    
+                });
+                $("#createDbContext").click(function(){
+                    createDbContext();
+                });
+                $("#createEntity").click(function(){
+                    createEntity();
+                });
+            }
+
+            //加载数据库对应的表
+            var loadDbTables=function(){
+                $dbTables.datagrid("load");
+            }
+
+            //setDbTablesTitme
+            var setDbTablesTitme=function(title){
+                $dbTables.datagrid("getPanel").panel("setTitle",title);
+            }
+
+            //inti dbColumns
+            var initDbColumns=function(){
+                $dbColumns.datagrid({
+                    url:"/DBEntityGenerator/GetColumns",
+                    onBeforeLoad:function(param){
+                        if(!currTable)
+                            return false;
+                        param.dbKeyName=currDb;
+                        param.tableName=currTable;
+                        return true;
+                    },
+                    onClickRow:function(index,row){
+
+                    }
+                });
+            }
+
+            //loadDbColumns
+            var loadDbColumns=function(){
+                $dbColumns.datagrid("load");
+            }
+
+            //setDbColumnTitle
+            var  setDbColumnTitle=function(title){
+                $dbColumns.datagrid("getPanel").panel("setTitle",title);
+            }
+
+            //createDbContext
+            var createDbContext=function(){
+                if(currDb==undefined)
+                {
+                    $.messager.alert('警告','请先选择一个数据库!',"warning");
+                    return;
+                }
+                var rows= $dbTables.datagrid("getSelections");
+                if(rows.length==0)
+                {
+                    $.messager.alert('警告','请至少选择一个表!',"warning");
+                    return;
+                }
+                var namespace=$("#dbContextNamespace").val();
+                if(namespace=="")
+                {
+                    $.messager.alert('警告','请输入DbContextNamespace!',"warning");
+                    $("#dbContextNamespace").fouce();
+                    return;
+                }
+                var url="/DBEntityGenerator/CreateDbContextClass?db="+currDb+"&namespace="+namespace+"&tables="+"";
+                var tables=[];
+                rows.forEach(function(item){
+                    tables.push(item.TABLE_NAME);
+                });
+                url+=tables.join(',');
+                var iframe='<iframe scrolling="auto" frameborder="0"  src="' + url + '" style="width:100%;height:98%;"></iframe>';
+                $("#dbContextWinCode").html(iframe);
+                $("#dbContextWin").window({title:currDb+"DbContext"});
+                $("#dbContextWin").window("open");
+            }
+
+            var createEntity=function(){
+                if(currDb==undefined)
+                {
+                    $.messager.alert('警告','请先选择一个数据库!',"warning");
+                    return;
+                }
+                var rows= $dbTables.datagrid("getSelections");
+                if(rows.length==0)
+                {
+                    $.messager.alert('警告','请至少选择一个表!',"warning");
+                    return;
+                }
+                var namespace=$("#entityNamespace").val();
+                if(namespace=="")
+                {
+                    $.messager.alert('警告','请输入EntityNamespace!',"warning");
+                    $("#entityNamespace").fouce();
+                    return;
+                }
+                var url="/DBEntityGenerator/CreateEntityClass?db="+currDb+"&namespace="+namespace+"&tables="+"";
+                var tables=[];
+                rows.forEach(function(item){
+                    tables.push(item.TABLE_NAME);
+                });
+                url+=tables.join(',');
+                var iframe='<iframe scrolling="auto" frameborder="0"  src="' + url + '" style="width:100%;height:98%;"></iframe>';
+                $("#EntityWinCode").html(iframe);
+                $("#EntityWin").window({title:currDb});
+                $("#EntityWin").window("open");
+            }
+            //run all init
+            initDbTree();
+            initDbTables();
+            initDbColumns();
+        });
+    </script>
+}
+

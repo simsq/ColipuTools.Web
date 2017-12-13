@@ -1,0 +1,43 @@
+﻿
+@{
+    ViewBag.Title = "阿里云";
+}
+
+
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'center'">
+        <div id="dv_tabs_m" class="easyui-tabs" data-options="plain:true,fit:true">
+            <div title="刷新CND缓存" style="padding: 20px;  margin: 0 auto; padding: 0 auto; height: 100%;">
+                <div style="padding-top:10px;">
+                    文件路径: 
+                    <textarea id="ObjectPath" style="width:98%;height:50px" placeholder="文件路径,例如:static.taolx.com/common/js/jquery-1.9.0.min.js"></textarea>
+                </div>
+                <br />
+                <div style="padding-top:10px;">
+                    刷新类型:  
+                    <select id="ObjectType">
+                        <option value="File">文件</option>
+                        <option value="Directory">目录</option>
+                    </select>
+                </div>
+                <br />
+                <a href="javascript:CNDRefreshObjectCaches()" class="easyui-linkbutton" style="width:55px">刷新</a>
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'south',border:false" style="height: 200px; width: 100%; overflow: hidden; padding: 0 0 15px;">
+        <label> Result:<textarea id="Result" style="width:98%;height:99%"></textarea></label>
+    </div>
+</div>
+@section scripts{
+    <script>
+        function CNDRefreshObjectCaches() {
+            $.messager.progress();
+            $.post("/Aliyun/RefreshObjectCaches", { ObjectPath: $("#ObjectPath").val(), ObjectType: $("#ObjectType").val(), },
+                function (data) {
+                    $.messager.progress("close")
+                    $("#Result").val(data);
+                });
+        }
+    </script>
+}

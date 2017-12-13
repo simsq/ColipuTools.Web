@@ -1,0 +1,39 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div id="p" class="easyui-panel" title="加密"
+     style="width:100%;height:250px;padding:10px; "
+     data-options="iconCls:'icon-save',closable:false,
+                collapsible:false,minimizable:false,maximizable:false">
+    <label>待加密字符串:<textarea id="wEncryptSource" style="width:98%;height:50px"></textarea></label>
+    <br />
+    <label> 加密后字符串:<textarea id="Encrypted" style="width:98%;height:50px"></textarea></label>
+    <br />
+    <a href="javascript:doAes('Encrypt','wEncryptSource','Encrypted')" class="easyui-linkbutton" style="width:55px">加密</a>
+</div>
+
+<div id="p" class="easyui-panel" title="解密"
+     style="width:100%;height:250px;padding:10px;"
+     data-options="iconCls:'icon-save',closable:false,
+                collapsible:false,minimizable:false,maximizable:false">
+    <label>待解密字符串:<textarea id="wDecryptSource" style="width:98%;height:50px"></textarea></label>
+    <br />
+    <label> 解密后字符串:<textarea id="Decrypted" style="width:98%;height:50px"></textarea></label>
+    <br />
+    <a href="javascript:doAes('Decrypt','wDecryptSource','Decrypted')" class="easyui-linkbutton" style="width:55px">解密</a>
+</div>
+@section scripts{
+    <script>
+        function doAes(action, source, tager) {
+            $("#" + tager).val("");
+            var s = $("#" + source).val();
+            $.messager.progress();
+            $.post("/Aes/" + action, { source: s }, function (data) {
+                $.messager.progress("close")
+                $("#" + tager).val(data);
+            });
+        }
+    </script>
+}
