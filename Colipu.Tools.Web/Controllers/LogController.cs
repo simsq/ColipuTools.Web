@@ -3,6 +3,8 @@ using System.Web.Mvc;
 using Colipu.Tools.Business;
 using Colipu.Tools.Model.EasyuiModels;
 using Colipu.Tools.Model.LogModel;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Colipu.Tools.Web.Controllers
 {
@@ -22,12 +24,15 @@ namespace Colipu.Tools.Web.Controllers
         /// GetAllTable
         /// </summary>
         /// <returns></returns>
-        public ActionResult GetAllTable()
+        public string GetAllTable()
         {
             var data = LogBll.GetAllTable();
             var index = 0;
             var trees = data.Select(item => new Tree { Id = (index++).ToString(), Text = item });
-            return Json(trees);
+            return JsonConvert.SerializeObject(trees,new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            });
         }
 
         /// <summary>
@@ -45,10 +50,12 @@ namespace Colipu.Tools.Web.Controllers
         /// GetStats
         /// </summary>
         /// <returns></returns>
-        public ActionResult GetStats()
+        public string GetStats()
         {
             var data = LogBll.GetStats();
-            return Json(new { DatabaseStats = data.Item1, CollectionStats = data.Item2 },JsonRequestBehavior.AllowGet);
+            var str = JsonConvert.SerializeObject(new { DatabaseStats = data.Item1, CollectionStats = data.Item2 });
+            //return Json(new { DatabaseStats = data.Item1, CollectionStats = data.Item2 }, JsonRequestBehavior.AllowGet);
+            return str;
         }
 
 

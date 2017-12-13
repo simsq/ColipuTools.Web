@@ -186,17 +186,7 @@
             initAppIdConfigs: function () {
                 thisPage.appIdConfigs = [
                      { APPID: "", APPName: "--全部--" },
-                     { APPID: "1001", APPName: "ApiCommon" },
-                     { APPID: "1002", APPName: "ApiShopping" },
-                     { APPID: "1003", APPName: "ApiBooking" },
-                     { APPID: "1004", APPName: "ApiOrder" },
-
-                     { APPID: "2000", APPName: "OnlineWWW" },
-                     { APPID: "2001", APPName: "OnlinePackages" },
-                     { APPID: "2002", APPName: "OnlineHotel" },
-                     { APPID: "2003", APPName: "OnlinePayment" },
-
-                     { APPID: "3000", APPName: "OfflinTools" }
+                     { APPID: "00001", APPName: "联通.Unicom" },
                 ];
                 thisPage.appIdConfigsEmuns = {};
                 for (var i in thisPage.appIdConfigs) {
@@ -206,13 +196,17 @@
                 thisPage.appIdConfigsEmuns[""] = "未知";
             },
             initTree: function () {
+                console.log("initTree")
                 $('#tt').tree({
                     url: "/Log/GetAllTable",
                     onSelect: function (node) {
                         thisPage.addTab(node.text, node.attributes, node.id);
                     },
-                    onLoadSuccess: function () {
-                        return;
+                    onLoadSuccess: function (data) {
+                        debugger;
+                        console.log("onLoadSuccess")
+                        //return;
+                        //console.log("returned")
                         var node = $('#tt').tree("find", 0);
                         if (node)
                             $('#tt').tree("select", node.target);
@@ -263,6 +257,7 @@
                     $.messager.progress();
                     $.post("/Log/GetStats", null, function (data) {
                         $.messager.progress("close")
+                        data = JSON.parse(data);
                         $("#DatabaseStats").datagrid("loadData", [data.DatabaseStats]);
                         $("#CollectionStats").datagrid("loadData", data.CollectionStats);
                     });
