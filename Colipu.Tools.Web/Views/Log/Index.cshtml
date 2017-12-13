@@ -1,0 +1,490 @@
+﻿@{
+    ViewBag.Title = "日志";
+}
+
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'west',split:true" title="表" style="width: 210px;">
+        <ul id="tt" class="easyui-tree"></ul>
+    </div>
+    <div data-options="region:'center'">
+        <div id="tabs" class="easyui-tabs" data-options="plain:true,fit:true">
+            <div title="仪表状态" options="id:-1" style="padding: 20px; margin: 0 auto; padding: 0 auto; height: 100%;">
+                <a href="javascript:void(0)" id="RefreshStatsBu" class="easyui-linkbutton" data-options="iconCls:'icon-reload'" style="width:80px">Refresh</a>
+                <table id="DatabaseStats" title="数据库状态"></table>
+                <table id="CollectionStats" title="集合状态"></table>
+            </div>
+        </div>
+    </div>
+</div>
+<script id="logCommentTemp" type="text/template">
+    <table id="datagrid_{{= tbName}}"></table>
+    <div id="toolbar_{{= tbName}}">
+        <form id="form_{{= tbName}}" onsubmit="return false">
+            <input id="TableName_{{= tbName}}" type="hidden" value="{{= tbName}}" />
+            <table>
+                <tr>
+                    <td>
+                        <label>
+                            应用ID:
+                            <select id="APPID_{{= tbName}}" style="width:150px;">
+                                <option value="" selected>--全部--</option>
+                                <option value="ar">Ara</option>
+                            </select>
+                        </label>
+                    </td>
+
+                    <td>
+                        <label>
+                            日志开始时间:<input id="StartLogDate_{{= tbName}}" type="text" style="width:150px;" prompt="大于等于开始时间" />
+                        </label>
+                    </td>
+                    <td>
+                        <label>
+                            方法:<input id="Method_{{= tbName}}" type="text" placeholder="模糊匹配" />
+                        </label>
+                    </td>
+                    <td>
+                        <label>
+                            消息:<input id="Message_{{= tbName}}" type="text" placeholder="模糊匹配" />
+                        </label>
+                    </td>
+                    <td>
+                        <label>
+                            索&nbsp; &nbsp; 引:<input id="Index_{{= tbName}}" type="text" placeholder="模糊匹配" />
+                        </label>
+                    </td>
+                    <td>
+                        <label>
+                            &nbsp; &nbsp;  &nbsp;组 :<input id="Group_{{= tbName}}" type="text" placeholder="模糊匹配" />
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        级&nbsp; 别:
+                        <select id="Level_{{= tbName}}" style="width:150px;">
+                            <option value="" selected>--全部--</option>
+                            <option value="INFO">INFO-信息</option>
+                            <option value="WARN">WARN-警告</option>
+                            <option value="ERROR">ERROR-错误</option>
+                        </select>
+                    </td>
+                    <td>
+                        <label>
+                            日志结束时间:<input id="EndLogDate_{{= tbName}}" type="text" style="width:150px;" prompt="小于等于结束时间" />
+                        </label>
+                    </td>
+
+                    <td>
+                        <label>
+                            标题:<input id="Title_{{= tbName}}" type="text" placeholder="模糊匹配" />
+                        </label>
+                    </td>
+
+                    <td>
+                        <label>
+                            异常:<input id="Exception_{{= tbName}}" type="text" placeholder="模糊匹配" />
+                        </label>
+                    </td>
+                    <td>
+                        <label>
+                            服务器IP:<input id="ServerIP_{{= tbName}}" type="text" placeholder="模糊匹配" />
+                        </label>
+                    </td>
+                    <td>
+                        <a href="javascript:void(0)" id="QueryBut_{{= tbName}}" class="easyui-linkbutton" data-options="iconCls:'icon-search'" style="width:80px">Search</a>
+                        <a href="javascript:void(0)" id="ExportBut_{{= tbName}}" class="easyui-linkbutton" data-options="iconCls:'icon-submit'" style="width:120px">All Json View</a>
+                        <a href="javascript:void(0)" id="ExportBut2_{{= tbName}}" class="easyui-linkbutton" data-options="iconCls:'icon-submit'" style="width:150px">Selections Json View</a>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</script>
+
+<script id="detailTemp" type="text/template">
+    <div style="max-height:500px;overflow:scroll;width:98%;background-color:#D2EBF2;color:black">
+        <table style="width:98%;">
+            <tr>
+                <td style="width:55px;">日志ID:</td>
+                <td>{{= _id}}</td>
+            </tr>
+            <tr>
+                <td>应用ID:</td>
+                <td>{{= APPID}}</td>
+            </tr>
+            <tr>
+                <td>日志等级:</td>
+                <td>{{= Level}}</td>
+            </tr>
+            <tr>
+                <td>方法:</td>
+                <td>{{= Method}}</td>
+            </tr>
+            <tr>
+                <td>标题:</td>
+                <td>
+                    <div>
+                        {{html formaterLog(Title)}}
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>索引:</td>
+                <td>
+                    <div>
+                        {{html formaterLog(Index)}}
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>组:</td>
+                <td>
+                    <div>
+                        {{html formaterLog(Group)}}
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>消息:</td>
+                <td>
+                    <div>
+                        {{html formaterLog(Message)}}
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>异常:</td>
+                <td>
+                    <div style="color:red;font-size:14px;">
+                        {{html formaterLog(Exception)}}
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>服务器IP:</td>
+                <td>{{= ServerIP}}</td>
+            </tr>
+        </table>
+    </div>
+</script>
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            thisPage.initAll();
+        });
+        var thisPage = {
+            appIdConfigs: null,
+            appIdConfigsEmuns: null,
+            initAll: function () {
+                thisPage.initAppIdConfigs();
+                thisPage.initStats();
+                thisPage.initTree();
+                thisPage.initTab();
+            },
+            initAppIdConfigs: function () {
+                thisPage.appIdConfigs = [
+                     { APPID: "", APPName: "--全部--" },
+                     { APPID: "1001", APPName: "ApiCommon" },
+                     { APPID: "1002", APPName: "ApiShopping" },
+                     { APPID: "1003", APPName: "ApiBooking" },
+                     { APPID: "1004", APPName: "ApiOrder" },
+
+                     { APPID: "2000", APPName: "OnlineWWW" },
+                     { APPID: "2001", APPName: "OnlinePackages" },
+                     { APPID: "2002", APPName: "OnlineHotel" },
+                     { APPID: "2003", APPName: "OnlinePayment" },
+
+                     { APPID: "3000", APPName: "OfflinTools" }
+                ];
+                thisPage.appIdConfigsEmuns = {};
+                for (var i in thisPage.appIdConfigs) {
+                    var item = thisPage.appIdConfigs[i];
+                    thisPage.appIdConfigsEmuns[item.APPID] = item.APPName;
+                };
+                thisPage.appIdConfigsEmuns[""] = "未知";
+            },
+            initTree: function () {
+                $('#tt').tree({
+                    url: "/Log/GetAllTable",
+                    onSelect: function (node) {
+                        thisPage.addTab(node.text, node.attributes, node.id);
+                    },
+                    onLoadSuccess: function () {
+                        return;
+                        var node = $('#tt').tree("find", 0);
+                        if (node)
+                            $('#tt').tree("select", node.target);
+                    }
+                });
+
+            },
+            initTab: function () {
+                $('#tabs').tabs({
+                    onSelect: function (title, index) {
+                        if (index == 0) return;
+                        var id = $(this).tabs("tabs")[index].panel("options").id;
+                        var node = $('#tt').tree("find", id);
+                        $('#tt').tree("select", node.target);
+                    }
+                });
+            },
+            initStats: function () {
+                var bytesToSize = function (bytes) {
+                    if (bytes === 0) return '0 B';
+                    var k = 1024, // or 1024
+                        sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+                        i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i];
+                }
+                $("#DatabaseStats").datagrid({
+                    columns: [[
+                          { field: 'DataSize', title: 'DataSize', formatter: bytesToSize },
+                          { field: 'FileSize', title: 'FileSize', formatter: bytesToSize },
+                          { field: 'StorageSize', title: 'StorageSize', formatter: bytesToSize },
+                          { field: 'IndexSize', title: 'IndexSize', formatter: bytesToSize },
+                          { field: 'ObjectCount', title: 'ObjectCount' },
+                          { field: 'Ok', title: 'Ok' }
+                    ]]
+                });
+                $("#CollectionStats").datagrid({
+                    columns: [[
+                          { field: 'Namespace', title: 'Namespace' },
+                          { field: 'ObjectCount', title: 'ObjectCount' },
+                          { field: 'DataSize', title: 'DataSize', formatter: bytesToSize },
+                          { field: 'StorageSize', title: 'StorageSize', formatter: bytesToSize },
+                          { field: 'TotalIndexSize', title: 'TotalIndexSize', formatter: bytesToSize },
+                          { field: 'Ok', title: 'Ok' }
+                    ]]
+                });
+
+                var query = function () {
+                    $.messager.progress();
+                    $.post("/Log/GetStats", null, function (data) {
+                        $.messager.progress("close")
+                        $("#DatabaseStats").datagrid("loadData", [data.DatabaseStats]);
+                        $("#CollectionStats").datagrid("loadData", data.CollectionStats);
+                    });
+                }
+                query();
+                $("#RefreshStatsBu").click(query);
+            },
+            addTab: function (title, url, id) {
+                if ($('#tabs').tabs('exists', title)) {
+                    $('#tabs').tabs('select', title);
+                } else {
+                    var content = $("#logCommentTemp").tmpl({ tbName: title })
+                    $('#tabs').tabs('add', {
+                        title: title,
+                        id: id,
+                        content: content,
+                        closable: true,
+                        tools: [
+                            {
+                                iconCls: "icon-mini-refresh", handler: function () {
+                                    updateTab();
+                                }
+                            }],
+                    });
+                    thisPage.initDatagrid(title);
+                }
+            },
+            initDatagrid: function (tbName) {
+                var form = {
+                    TableName: $("#TableName_" + tbName),
+                    APPID: $("#APPID_" + tbName),
+                    Level: $("#Level_" + tbName),
+                    StartLogDate: $("#StartLogDate_" + tbName),
+                    EndLogDate: $("#EndLogDate_" + tbName),
+                    Method: $("#Method_" + tbName),
+                    Title: $("#Title_" + tbName),
+                    Index: $("#Index_" + tbName),
+                    Group: $("#Group_" + tbName),
+                    Message: $("#Message_" + tbName),
+                    Exception: $("#Exception_" + tbName),
+                    ServerIP: $("#ServerIP_" + tbName),
+                    QueryBut: $("#QueryBut_" + tbName),
+                    ExportBut: $("#ExportBut_" + tbName),
+                    ExportBut2: $("#ExportBut2_" + tbName)
+                };
+                form.APPID.combobox({
+                    valueField: 'APPID',
+                    textField: 'APPName',
+                    data: thisPage.appIdConfigs,
+                    panelWidth: 230,
+                    filter: function (q, row) {
+                        q = q.toLowerCase();
+                        return row["APPID"].toLowerCase().indexOf(q) >= 0 || row["APPName"].toLowerCase().indexOf(q) >= 0;
+                    },
+                    formatter: function (row) {
+                        if (row["APPID"] == "") return row["APPName"];
+                        var opts = $(this).combobox('options');
+                        return row["APPID"] + "." + row["APPName"];
+                    }
+                });
+                form.Level.combobox();
+                form.StartLogDate.datetimebox();
+                form.EndLogDate.datetimebox();
+                //var time = new Date(new Date().getTime() - (15 * 60 * 1000));
+                //form.StartLogDate.datetimebox("setValue", time);
+                var doQuery = function () {
+                    $('#datagrid_' + tbName).datagrid("getPager").pagination({ pageNumber: 1 });
+                    $('#datagrid_' + tbName).datagrid("reload");
+                }
+                var keyEvent13 = function (event) {
+                    if (event.keyCode === 13)
+                        doQuery();
+                };
+                form.Method.keydown(keyEvent13);
+                form.Title.keydown(keyEvent13);
+                form.Index.keydown(keyEvent13);
+                form.Group.keydown(keyEvent13);
+                form.Message.keydown(keyEvent13);
+                form.Exception.keydown(keyEvent13);
+                form.ServerIP.keydown(keyEvent13);
+                form.QueryBut.click(function () {
+                    doQuery();
+                });
+                form.ExportBut.click(function () {
+                    var data = $('#datagrid_' + tbName).datagrid("getData");
+                    var content = ' <textarea style="width:98%;height:98%">' + JSON.stringify(data.rows) + '</textarea>';
+                    thisPage.openWindow("自个儿考屁吧!", content);
+                });
+                form.ExportBut2.click(function () {
+                    var data = $('#datagrid_' + tbName).datagrid("getSelections");
+                    var id = '_jf_' + new Date().getTime();
+                    var content = '<span id="' + id + '" style="overflow:auto;width: 1216px; height: 724px;"></span>';
+                    thisPage.openWindow("自个研究儿!", content);
+                    var jf = new JsonFormater({ dom: "#" + id });
+                    jf.doFormat(data);
+                });
+                $('#datagrid_' + tbName).data("isFrist", true);
+                $('#datagrid_' + tbName).datagrid({
+                    url: "/Log/QueryLog",
+                    pagination: true,
+                    pageSize: 20,
+                    pageList: [10, 20, 30, 40, 50, 100],
+                    singleSelect: false,
+                    striped: true,
+                    rownumbers: true,
+                    fit: true,
+                    fitColumns: true,
+                    autoRowHeight: true,
+                    nowrap: true,//数据长度超出列宽时将会自动截取。
+                    toolbar: "#toolbar_" + tbName,
+                    columns: [[
+                            { field: "ck", checkbox: true },
+                            { field: '_id', title: '_id', hidden: true },
+                            { field: 'LogDate', title: '时间', width: 110 },
+                            {
+                                field: 'APPID', title: '应用ID', width: 40, formatter: function (value, row, index) {
+                                    var appId = thisPage.appIdConfigs.find(function (item) {
+                                        return item.APPID == value;
+                                    });
+                                    if (appId)
+                                        return appId.APPName;
+                                    return value;
+                                }
+                            },
+                            { field: 'Level', title: '日志等级', width: 40 },
+                            { field: 'Method', title: '方法', width: 200 },
+                            { field: 'Title', title: '标题', width: 200 },
+                            { field: 'Index', title: '索引', width: 120 },
+                            { field: 'Group', title: '组', width: 120 },
+                            {
+                                field: 'Message', title: '消息', width: 200, formatter: function (value, row, index) {
+                                    return ' <textarea style="width:98%;height:98%">' + value + '</textarea>';
+                                    return formaterLog(value);
+                                    if (value && value.length > 300) {
+
+                                    } else
+                                        return value;
+                                }
+                            },
+                            {
+                                field: 'Exception', title: '异常', width: 200, formatter: function () {
+
+                                }
+                            },
+                            { field: 'ServerIP', title: '服务器IP', width: 80 }
+                    ]],
+                    view: detailview,
+                    detailFormatter: function (index, row) {
+                        return '<div class="ddv" style="padding:2px"></div>';
+                    },
+                    onExpandRow: function (index, row) {
+                        var ddv = $(this).datagrid('getRowDetail', index).find('div.ddv');
+                        if (!ddv.html()) {
+                            ddv.html($("#detailTemp").tmpl(row));
+                        }
+                        $(this).datagrid('fixDetailRowHeight', index);
+                    },
+                    onBeforeLoad: function (param) {
+                        if ($('#datagrid_' + tbName).data("isFrist")) {
+                            $('#datagrid_' + tbName).data("isFrist", false);
+                            return false;
+                        }
+                        param.TableName = form.TableName.val();
+                        var APPID = form.APPID.combobox("getValue");
+                        if (APPID == "")
+                            APPID = form.APPID.combobox("getText");
+                        if (APPID == "--全部--")
+                            APPID = "";
+                        param.APPID = APPID;
+                        param.Level = form.Level.combobox("getValue");
+                        param.StartLogDate = form.StartLogDate.datetimebox("getValue");
+                        param.EndLogDate = form.EndLogDate.datetimebox("getValue");
+                        param.Method = form.Method.val();
+                        param.Title = form.Title.val();
+                        param.Group = form.Group.val();
+                        param.Message = form.Message.val();
+                        param.Exception = form.Exception.val();
+                        param.ServerIP = form.ServerIP.val();
+                        param.Index = form.Index.val();
+                        var pager = $(this).datagrid("getPager").pagination("options")
+                        param.PageSize = pager.pageSize;
+                        param.PageNum = pager.pageNumber;
+                    },
+                    onDblClickRow: function (index, row) {
+                        var expander = $(this).datagrid('getExpander', index);
+                        if (expander.hasClass('datagrid-row-expand'))
+                            $(this).datagrid("expandRow", index);
+                        else
+                            $(this).datagrid("collapseRow", index);
+                    }
+                });
+            },
+            openWindow: function (title, content) {
+                var id = "t_w_" + new Date().getTime();
+                $("body").append("<div id='" + id + "'></div>");
+                id = "#" + id;
+                $(id).window({
+                    title: title,
+                    width: 1280,
+                    height: 800,
+                    minimizable: false,
+                    content: content,
+                    onClose: function () {
+                        $(id).window("destroy");
+                    }
+                });
+                $(id).window("center");
+            }
+        };
+
+        function formaterLog(log) {
+            if (log == null || log == "" || log == undefined)
+                return "";
+            log = log.replace(/\n|\r|(\r\n)|(\u0085)|(\u2028)|(\u2029)/g, "");
+            log = log.replace(/</g, "&lt;");
+            log = log.replace(/>/g, "&gt;");
+            var re = /(<br\/>)\1/g;
+            while (log.match(re) != null) {
+                log = log.replace(re, "$1");
+            }
+            return log;
+        }
+    </script>
+}
+
